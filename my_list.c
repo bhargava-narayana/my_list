@@ -1,60 +1,166 @@
 #include "my_list.h"
 
-void list_init(List *list) {
-        list->node_count = 0;
+void list_init(List *list)
+{
         list->head = NULL;
         list->tail = NULL;
+        list->count = 0;
         if(VERBOSE)
-                printf("list_init complete. node_count = %d\n",list->node_count);
+                printf("list_init complete\n");
 }
 
-void list_print(List *list) {
-        if(list_is_empty(list)) {
-                printf("list is empty! nothing to print\n");
-                return;
-        }
-        Node *current; 
-        printf("LIST_HEAD->");
-        while(current->next != NULL){
-                printf("%d->",current->data);
-                current = current->next;
-        }
-        printf("NULL\n");
-
-}
-
-int insert_next(List *list, Node *node, const void data) {
+int insert_next(List *list, Node *node, const void *data)
+{
         Node *new_node;
-        if((new_node = malloc(sizeof(Node))) == NULL) {
-                printf("malloc failure! exiting..\n");
+        void *ptr;
+
+        if((new_node = (Node *)malloc(sizeof(Node))) == NULL)
                 return -1;
+
+        new_node->info = (void *)data;
+
+        if(node == NULL)
+        {
+                if(list->count == 0)
+                        list->tail = new_node;
+
+                new_node->next = list->head;
+               list->head = new_node; 
         }
+        else
+        {
+                if(node->next ==NULL)
+                {
+                        list->tail = new_node;
+                }
+                
+                new_node->next = node->next;
+                node->next = new_node;
+        }
+        list->count++;
+       
+       /* 
         if(VERBOSE)
-                printf("malloc successful! data = %d\n",data);
+        {
+                ptr = (int *)new_node->info;
+                printf("new_node->info = %d", ptr);
+        }
+        */
         return 0;
-
 }
-int main(int argc, char *argv[]) {
 
-        List *list;
-        Node *node;
-        DATA_TYPE *data;
-        
-        data = 5;
+int remove_node(List *list, Node *node, void **data)
+{
+        Node *current;
 
-        list_init(&list);
-        list_print(&list);
+        if(list_is_empty(list))
+        {
+                fprintf(stdout, "remove_node: list is empty\n");
+                return 1;
+        }
         
-        int result;
-        result = insert_next(&list, NULL, data);
-        if (result == 0) {
-                list_print(&list);
+        /*
+         * removal of head
+         */
+        if(node == NULL)
+        {
+                *data = list->head->info;
+                current = list->head;
+                list->head = list->head->next;
+
+                if(list->count == 1)
+                        list->tail = NULL;
         }
         else {
-                printf("insert_next failed!\n");
-        }
+                if(node->next == NULL)
+                {
+                        fprintf(stdout, "remove_node: invlaid data\n");
+                        return -1;
+                }
+                
+                *data = node->next->info;
+                current = node->next;
+                node->next = current->next->next;
+                
+                if(node->next == NULL)
+                {
+                        list->tail = node;
 
+                }
+        }
+        free(current);
+        list->count--;
 
         return 0;
 }
 
+void print_list(List *list)
+{
+        Node *current;
+        DATA_TYPE *data;
+
+        if(list_is_empty(list))
+        {
+                printf("empty list.nothing to print.\n");
+                return;
+        }
+
+        current = list->head;
+        printf("number of nodes= %d\n", list->count);
+        printf("List_HEAD->");
+        while(1)
+        {
+                data = current->info;
+                fprintf(stdout, "%d->", *data);
+                if(current == list->tail )
+                        break;
+                else
+                        current = current->next;
+        }
+        printf("NULL\n");
+        return;
+}
+
+
+int main(int argc, char *argv[])
+{
+        List my_list;
+        Node *my_node;
+        DATA_TYPE *data;
+        int result;
+
+        if((data = (DATA_TYPE *)malloc(sizeof(DATA_TYPE))) == NULL)
+                return 1;
+
+        list_init(&my_list);
+
+        /*
+         * inserting a node
+         */
+        *data = 5;
+        if((result = insert_next(&my_list, NULL, data)) != 0)
+        {
+                printf("%d insert_next failed!\n", *data);
+                return EXIT_FAILURE;
+        }
+        else {
+                printf("insert_next of %d complete\n", *data);
+        }
+        print_list(&my_list);
+      
+       /*
+        * removing a node
+        */ 
+        if((result = remove_node(&my_list, my_node,(void **)&data)) != 0)
+        {
+                printf("%d remove_node failed!\n", *data);
+                return EXIT_FAILURE;
+        }
+        else {
+                printf("remove_node of %d complete\n", *data);
+        }
+        print_list(&my_list);
+       
+
+        return EXIT_SUCCESS;
+}

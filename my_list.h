@@ -1,34 +1,32 @@
 #ifndef __MY_LIST_H
 #define __MY_LIST_H
 
-#ifndef TRUE 
-#define TRUE 1
-#endif
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
-#ifndef FALSE
-#define FALSE 0
-#endif
+#define VERBOSE true
 
-#define VERBOSE TRUE
 #define DATA_TYPE int
 
-#include <stdio.h>
-typedef struct nodeT {
-        void *data;
-        struct nodeT *next; 
+typedef struct nodeT
+{
+        void *info;
+        struct nodeT *next;
 } Node;
 
-typedef struct listT {
-        int node_count;
+typedef struct listT
+{
         Node *head;
         Node *tail;
+        int count;
 } List;
 
-void list_init(List *list);
-void list_print(List *list); 
-int insert_next(List *list, Node *node, const void data);
+void list_init(List *);
+int insert_next(List *, Node *, const void  *);
+int remove_node(List *, Node *, void  **);
+void print_list(List *);
 
-#define list_is_empty(list) (list->node_count == 0? 1:0)
-
-
+#define list_is_empty(list) (list->count==0 ? true:false)
 #endif
+
